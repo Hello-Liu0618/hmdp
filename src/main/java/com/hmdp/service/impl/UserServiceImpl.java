@@ -59,7 +59,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         //手机号格式正确
 
         //校验验证码是否正确
-        if ( code == null || code != session.getAttribute("code") ) {
+        String cacheCode = (String) session.getAttribute("code");
+        if ( code == null || !code.equals(cacheCode)) {
             //验证码错误
             return Result.fail("验证码错误!");
         }
