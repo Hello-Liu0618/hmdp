@@ -60,7 +60,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 //        session.setAttribute("code", code);
         //生成并保存验证码到redis中
         String code = RandomUtil.randomNumbers(6);
-        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, 1, TimeUnit.MINUTES);//保存验证码到redis中有效期为1分钟
+        stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);//保存验证码到redis中有效期为2分钟
 
         //发送验证码
         //需要企业资质调用阿里短信服务，故此处跳过
@@ -149,7 +149,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
                         .setFieldValueEditor((fieldName, fieldValue) -> fieldValue.toString()));
         String tokenKey = LOGIN_USER_KEY + token;
         stringRedisTemplate.opsForHash().putAll(tokenKey, userMap);
-        stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);//设置token的有效期为20分钟，即20分钟无操作则登录失效
+        stringRedisTemplate.expire(tokenKey, LOGIN_USER_TTL, TimeUnit.MINUTES);//设置token的有效期，无操作则登录失效
 
         return Result.ok(token);
     }
