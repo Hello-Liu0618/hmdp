@@ -13,6 +13,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.sql.Time;
+import java.util.concurrent.TimeUnit;
+
 /**
  * <p>
  *  服务实现类
@@ -51,7 +54,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
             return Result.fail("店铺不存在!");
         }
         //写入缓存
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop));
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop), 30L, TimeUnit.MINUTES);//设置缓存过期时间为30分钟
         return Result.ok(shop);
     }
 }
