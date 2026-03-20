@@ -9,6 +9,7 @@ import com.hmdp.mapper.ShopMapper;
 import com.hmdp.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisConstants;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author 虎哥
  * @since 2021-12-22
  */
+@Slf4j
 @Service
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
 
@@ -43,11 +45,13 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         String shopJson = stringRedisTemplate.opsForValue().get(key);
         //缓存中有店铺数据
         if ( StrUtil.isNotBlank(shopJson) ) {
+            log.info("商铺缓存命中, key: {}",key);
             //读取缓存
             Shop shop = JSONUtil.toBean(shopJson, Shop.class);
             return Result.ok(shop);
         }
         //若缓存中没有, 则从数据库中读取
+        log.info("商铺缓存缺失, key: {}", key);
         Shop shop = getById(id);
 
         if (shop == null) {
@@ -55,6 +59,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         }
         //写入缓存
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop), 30L, TimeUnit.MINUTES);//设置缓存过期时间为30分钟
+        log.info("商铺缓存写入, key: {}", key);
         return Result.ok(shop);
     }
 
