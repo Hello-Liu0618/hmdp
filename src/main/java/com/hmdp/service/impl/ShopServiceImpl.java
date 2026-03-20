@@ -57,4 +57,22 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop), 30L, TimeUnit.MINUTES);//设置缓存过期时间为30分钟
         return Result.ok(shop);
     }
+
+    /**
+     * 更新店铺数据并清除缓存
+     * @param shop
+     * @return
+     */
+    public Result update(Shop shop) {
+        Long id = shop.getId();
+        if (id == null) {
+            //店铺id为空
+            return Result.fail("店铺id不能为空!");
+        }
+        //先修改数据库
+        updateById(shop);
+        //再清除缓存
+        stringRedisTemplate.delete(RedisConstants.CACHE_SHOP_KEY + id);
+        return Result.ok();
+    }
 }
