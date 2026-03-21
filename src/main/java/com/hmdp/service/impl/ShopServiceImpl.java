@@ -44,21 +44,30 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
         String key = RedisConstants.CACHE_SHOP_KEY + id;
         String shopJson = stringRedisTemplate.opsForValue().get(key);
         //缓存中有店铺数据
-        if ( StrUtil.isNotBlank(shopJson) ) {
+        if ( StrUtil.isNotBlank(shopJson) ) {//判断是否为null 或者 ""
             log.info("商铺缓存命中, key: {}",key);
             //读取缓存
             Shop shop = JSONUtil.toBean(shopJson, Shop.class);
             return Result.ok(shop);
+        }
+        if (shopJson != null) {
+            //不是null则为"". 为防止缓存穿透设置
+            log.info("商铺缓存穿透命中, key: {}",key);
+            return Result.fail("店铺不存在!");
         }
         //若缓存中没有, 则从数据库中读取
         log.info("商铺缓存缺失, key: {}", key);
         Shop shop = getById(id);
 
         if (shop == null) {
+            //设置缓存控制防止缓存穿透
+            stringRedisTemplate.opsForValue().set(key, "", RedisConstants.CACHE_NULL_TTL, TimeUnit.MINUTES);
+            log.info("商铺缓存穿透, key: {}",key);
+            //返回错误信息
             return Result.fail("店铺不存在!");
         }
         //写入缓存
-        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop), 30L, TimeUnit.MINUTES);//设置缓存过期时间为30分钟
+        stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(shop), RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);//设置缓存过期时间为30分钟
         log.info("商铺缓存写入, key: {}", key);
         return Result.ok(shop);
     }
