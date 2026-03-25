@@ -51,15 +51,15 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
      */
     public Result  queryById(Long id) {
         //解决缓存穿透
-//        Shop shop = cacheClient
-//                .queryWithPassThrough(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+        Shop shop = cacheClient
+                .queryWithPassThrough(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         //使用互斥锁解决缓存击穿(增量自queryWithPassThrough(), 故也解决了缓存穿透)
         //Shop shop = queryWithMutex(id);
 
         //使用逻辑过期解决缓存击穿
-        Shop shop = cacheClient
-                .queryWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, RedisConstants.LOCK_SHOP_KEY, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
+//        Shop shop = cacheClient
+//                .queryWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, RedisConstants.LOCK_SHOP_KEY, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
 
         if (  null == shop) {
             log.info("店铺访问失败!");
