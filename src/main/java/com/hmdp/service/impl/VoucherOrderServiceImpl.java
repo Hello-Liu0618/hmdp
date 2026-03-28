@@ -11,11 +11,14 @@ import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.time.LocalDateTime;
 
 /**
@@ -29,15 +32,23 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
-    private final ISeckillVoucherService iSeckillVoucherService;
-    private final RedisIdWorker redisIdWorker;
-    private final StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private ISeckillVoucherService iSeckillVoucherService;
 
-    public VoucherOrderServiceImpl(ISeckillVoucherService iSeckillVoucherService, RedisIdWorker redisIdWorker, StringRedisTemplate stringRedisTemplate) {
-        this.iSeckillVoucherService = iSeckillVoucherService;
-        this.redisIdWorker = redisIdWorker;
-        this.stringRedisTemplate = stringRedisTemplate;
-    }
+    @Resource
+    private RedisIdWorker redisIdWorker;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
+
+//    public VoucherOrderServiceImpl(ISeckillVoucherService iSeckillVoucherService, RedisIdWorker redisIdWorker, StringRedisTemplate stringRedisTemplate) {
+//        this.iSeckillVoucherService = iSeckillVoucherService;
+//        this.redisIdWorker = redisIdWorker;
+//        this.stringRedisTemplate = stringRedisTemplate;
+//    }
 
     public Result seckillVoucher(Long voucherId) {
         //查询得到优惠券
@@ -62,9 +73,10 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
         Long userId = UserHolder.getUser().getId();
         //创建锁对象
-        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+//        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+        RLock lock = redissonClient.getLock("lock:order:" + userId);
         //尝试获取锁
-        boolean isLock = lock.tryLock(1200);
+        boolean isLock = lock.tryLock();
         //判断是否获取锁成功
         if ( !isLock ) {
             //获取锁失败, 报错或重试
