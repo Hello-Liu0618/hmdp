@@ -150,6 +150,34 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
         //为0，有购买资格，把订单保存到阻塞队列
 
+//
+//        VoucherOrder  voucherOrder = new VoucherOrder();
+//        long orderId = redisIdWorker.nextId("order");
+//        voucherOrder.setId(orderId);
+//        voucherOrder.setUserId(userId);
+//        voucherOrder.setVoucherId(voucherId);
+//        //创建锁对象
+////        SimpleRedisLock lock = new SimpleRedisLock("order:" + userId, stringRedisTemplate);
+//        RLock lock = redissonClient.getLock("lock:order:" + userId);
+//        //尝试获取锁
+//        boolean isLock = lock.tryLock();
+//        //判断是否获取锁成功
+//        if ( !isLock ) {
+//            //获取锁失败, 报错或重试
+//            return Result.fail("不能重复购买秒杀优惠券!");
+//        }
+//        try {
+//            //获取代理对象(事务)
+//            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+//            proxy.createVoucherOrder(voucherOrder);
+//        } catch (IllegalStateException e) {
+//            throw new RuntimeException(e);
+//        } finally {
+//            lock.unlock();
+//        }
+
+
+
         //新建订单
         VoucherOrder  voucherOrder = new VoucherOrder();
         long orderId = redisIdWorker.nextId("order");

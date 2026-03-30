@@ -56,7 +56,7 @@ end
 
 -- 库存充足且没有重复下单
 
---扣除亏存
+--扣除库存
 redis.call("incrby", stockKey, -1)
 
 -- 保存用户
